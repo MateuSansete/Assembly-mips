@@ -1,2 +1,2 @@
-# assembly-mips-L1
+# assembly-mips
 Exercícios de Assembly Mips .
