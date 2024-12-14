@@ -1,0 +1,16 @@
+    .text
+    .globl contaBits
+
+contaBits:
+    li $t0, 0          # Inicializa o contador de bits 1
+loop:
+    beqz $a0, end      # Se o número for 0, termina o loop
+    andi $t1, $a0, 1   # Verifica o menor bit (1 ou 0)
+    add $t0, $t0, $t1  # Incrementa o contador se o bit for 1
+    sub $a0, $a0, $t1  # Subtrai 1 do número se o menor bit for 1
+    srl $a0, $a0, 1    # Desloca o número para a direita
+    j loop             # Repete o loop
+
+end:
+    move $v0, $t0      # Coloca o resultado no registrador $v0
+    jr $ra             # Retorna da função
