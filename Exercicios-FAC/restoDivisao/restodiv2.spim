@@ -1,0 +1,29 @@
+.data
+n: .space 4
+i: .space 4
+
+.text
+.globl main
+main:
+    li $v0, 5
+    syscall
+    sw $v0, n
+
+    li $v0, 5
+    syscall
+    sw $v0, i
+
+    lw $t1, i
+    li $t2, 1
+    sllv $t3, $t2, $t1
+    addi $t3, $t3, -1
+
+    lw $t0, n
+    and $t4, $t0, $t3
+
+    move $a0, $t4
+    li $v0, 1
+    syscall
+
+    li $v0, 10
+    syscall
