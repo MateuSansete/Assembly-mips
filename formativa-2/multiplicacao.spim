@@ -1,0 +1,90 @@
+.text
+# Programa principal para testar divfac
+main:
+    li $a0, 15          # Carregar dividendo em $a0
+    li $a1, 5           # Carregar divisor em $a1
+    jal divfac          # Chamar o procedimento divfac
+
+    # Exibir quociente (salvo em $t3)
+    move $a0, $t3       # Passar quociente para $a0
+    li $v0, 1           # Chamada de sistema: print_int
+    syscall
+
+    # Exibir uma nova linha
+    li $a0, 10          # Código ASCII para '\n'
+    li $v0, 11          # Chamada de sistema: print_char
+    syscall
+
+    # Exibir resto (salvo em $t4)
+    move $a0, $t4       # Passar resto para $a0
+    li $v0, 1           # Chamada de sistema: print_int
+    syscall
+
+    # Finalizar programa
+    li $v0, 10          # Chamada de sistema: exit
+    syscall
+
+# Procedimento divfac
+divfac:
+    # Salvar registros temporários no stack
+    addi $sp, $sp, -16
+    sw $t0, 0($sp)      # Salvar $t0
+    sw $t1, 4($sp)      # Salvar $t1
+    sw $t2, 8($sp)      # Salvar $t2
+    sw $t3, 12($sp)     # Salvar $t3
+    sw $t4, 16($sp)     # Salvar $t4
+
+    # Lidar com sinais
+    move $t0, $a0       # Copiar dividendo para $t0
+    move $t1, $a1       # Copiar divisor para $t1
+    li $t2, 1           # Inicializar sinal positivo
+
+    # Checar se dividendo é negativo
+    bltz $t0, neg_dividend
+    j check_divisor
+neg_dividend:
+    negu $t0, $t0       # Tornar dividendo positivo
+    neg $t2, $t2        # Inverter sinal
+
+check_divisor:
+    # Checar se divisor é negativo
+    bltz $t1, neg_divisor
+    j division
+neg_divisor:
+    negu $t1, $t1       # Tornar divisor positivo
+    neg $t2, $t2        # Inverter sinal
+
+division:
+    # Divisão por subtração repetida
+    li $t3, 0           # Inicializar quociente em $t3
+    move $t4, $t0       # Resto inicial é o dividendo
+
+divide_loop:
+    # Verificar se $t4 (resto) é maior ou igual ao divisor
+    bge $t4, $t1, subtract
+    j finish
+
+subtract:
+    subu $t4, $t4, $t1  # Subtrair divisor do resto
+    addiu $t3, $t3, 1   # Incrementar quociente
+    j divide_loop
+
+finish:
+    # Ajustar sinais do quociente e resto
+    bgez $t2, positive_result
+    negu $t3, $t3       # Tornar quociente negativo
+    negu $t4, $t4       # Tornar resto negativo
+
+positive_result:
+    # Salvar resultados em registradores temporários
+    move $t3, $t3       # Salvar quociente em $t3
+    move $t4, $t4       # Salvar resto em $t4
+
+    # Restaurar registros temporários e retornar
+    lw $t0, 0($sp)
+    lw $t1, 4($sp)
+    lw $t2, 8($sp)
+    lw $t3, 12($sp)
+    lw $t4, 16($sp)
+    addi $sp, $sp, 20
+    jr $ra              # Retornar

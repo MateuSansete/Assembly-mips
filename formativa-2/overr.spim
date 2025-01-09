@@ -1,0 +1,69 @@
+.data
+prompt_type: .asciiz "Digite 0 para soma sem sinal ou 1 para soma com sinal: "
+prompt_a: .asciiz "Digite o primeiro numero: "
+prompt_b: .asciiz "Digite o segundo numero: "
+overflow_msg: .asciiz "overflow\n"
+
+.text
+.globl main
+
+main:
+    li $v0, 4
+    la $a0, prompt_type
+    syscall
+
+    li $v0, 5
+    syscall
+    move $t0, $v0
+
+    li $v0, 4
+    la $a0, prompt_a
+    syscall
+
+    li $v0, 5
+    syscall
+    move $t1, $v0
+
+    li $v0, 4
+    la $a0, prompt_b
+    syscall
+
+    li $v0, 5
+    syscall
+    move $t2, $v0
+
+    addu $t3, $t1, $t2
+
+    beq $t0, 0, check_unsigned_overflow
+
+    # Verificação de overflow para soma com sinal
+    xor $t4, $t1, $t2
+    bgez $t4, check_signed_result
+
+    xor $t4, $t1, $t3
+    bltz $t4, print_overflow
+    j finish
+
+check_signed_result:
+    li $v0, 1
+    move $a0, $t3
+    syscall
+    j finish
+
+check_unsigned_overflow:
+    sltu $t4, $t3, $t1
+    bne $t4, $zero, print_overflow
+
+    li $v0, 1
+    move $a0, $t3
+    syscall
+    j finish
+
+print_overflow:
+    li $v0, 4
+    la $a0, overflow_msg
+    syscall
+
+finish:
+    li $v0, 10
+    syscall
