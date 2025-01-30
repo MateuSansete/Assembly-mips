@@ -1,0 +1,137 @@
+.data
+
+C:     .byte 'C'
+F:     .byte 'F'
+K:     .byte 'K'
+constF:  .float 5.0, 9.0, 32.0
+constC:  .float 273.15
+ql:     .asciiz "\n"
+
+.text
+
+main:
+
+# le entradas
+    li      $v0,        12
+    syscall 
+    move    $t0,        $v0
+
+    li      $v0,        12
+    syscall 
+
+    li      $v0,        12
+    syscall 
+    move    $t1,        $v0
+
+    li      $v0,        12
+    syscall 
+
+    li      $v0,        6
+    syscall 
+
+# converte temperatura
+    lb      $s0,        C                  
+    beq     $t0,        $s0,    Celcius      
+
+    lb      $s0,        F                  
+    beq     $t0,        $s0,    Fahrenheit  
+
+
+Kevin:
+
+    lb      $s0,        C
+    beq     $t1,        $s0,    K_C
+
+K_F:
+
+    lwc1    $f2,        constC              
+    sub.s   $f0,        $f0,    $f2         
+
+    j       C_F
+
+K_C:
+
+    lwc1    $f2,        constC             
+    sub.s   $f0,        $f0,    $f2         
+
+    j       encerra
+
+Celcius:
+
+    lb      $s0,        F                  
+    beq     $t1,        $s0,    C_F       
+
+
+C_K:
+
+    lwc1    $f2,        constC             
+    add.s   $f0,        $f0,    $f2         
+
+    j       encerra
+
+
+C_F:
+
+    la      $t3,        constF             
+    lwc1    $f2,        0($t3)             
+    lwc1    $f3,        4($t3)              
+    lwc1    $f4,        8($t3)             
+
+    div.s   $f1,        $f3,    $f2         
+    mul.s   $f1,        $f1,    $f0        
+    add.s   $f0,        $f1,    $f4         
+
+    j       encerra
+
+
+Fahrenheit:
+
+    lb      $s0,        C                  
+    beq     $t1,        $s0,    F_C       
+
+F_K:
+
+    la      $t3,        constF              
+
+
+    lwc1    $f2,        0($t3)
+    lwc1    $f3,        4($t3)
+    lwc1    $f4,        8($t3)
+
+    div.s   $f1,        $f2,    $f3        
+    sub.s   $f0,        $f0,    $f4         
+    mul.s   $f0,        $f0,    $f1         
+
+    lwc1    $f2,        constC             
+    add.s   $f0,        $f0,    $f2        
+    j       encerra
+
+
+F_C:
+
+
+    la      $t3,        constF
+    lwc1    $f2,        0($t3)
+    lwc1    $f3,        4($t3)
+    lwc1    $f4,        8($t3)
+
+    div.s   $f1,        $f2,    $f3
+    sub.s   $f0,        $f0,    $f4
+    mul.s   $f0,        $f0,    $f1
+
+    j       encerra
+
+
+encerra:
+
+
+    li      $v0,        2
+    mov.s   $f12,       $f0
+    syscall 
+
+    li      $v0,        4
+    la      $a0,        ql
+    syscall 
+
+    li      $v0,        10
+    syscall 
