@@ -1,87 +1,88 @@
 divfac:
-    # Salvar registradores temporários usados
+   
     addi $sp, $sp, -16
     sw $t0, 0($sp)
     sw $t1, 4($sp)
     sw $t2, 8($sp)
     sw $t3, 12($sp)
 
-    # Inicializar variáveis
-    move $t0, $a0        # $t0 = dividendo
-    move $t1, $a1        # $t1 = divisor
-    li $t2, 0            # $t2 = quociente
-    li $t3, 0            # $t3 = sinal
+    
+    move $t0, $a0        
+    move $t1, $a1        
+    li $t2, 0            
+    li $t3, 0           
 
-    # Lidar com o sinal do dividendo
+    
     bltz $t0, negate_dividend
     j check_divisor
 
 negate_dividend:
-    sub $t0, $zero, $t0   # Negar o dividendo
-    addi $t3, $t3, 1      # Incrementar o contador de sinal
+    sub $t0, $zero, $t0   
+    addi $t3, $t3, 1      
 
 check_divisor:
-    # Lidar com o sinal do divisor
+    
     bltz $t1, negate_divisor
     j perform_division
 
 negate_divisor:
-    sub $t1, $zero, $t1   # Negar o divisor
-    addi $t3, $t3, 1      # Incrementar o contador de sinal
+    sub $t1, $zero, $t1   
+    addi $t3, $t3, 1     
+
 
 perform_division:
-    # Verificar se o divisor é maior que o dividendo
+   
     bgt $t1, $t0, finalize
 
-    # Encontrar o maior deslocamento do divisor em relação ao dividendo
-    move $t4, $t1         # $t4 = divisor
-    li $t5, 0             # $t5 = contador de deslocamentos
+    
+    move $t4, $t1        
+    li $t5, 0             
 
 find_shift:
-    sll $t4, $t4, 1       # Multiplica $t4 por 2
-    addi $t5, $t5, 1      # Incrementa o deslocamento
+    sll $t4, $t4, 1       
+    addi $t5, $t5, 1      
     blt $t4, $t0, find_shift
 
-    sub $t5, $t5, 1       # Reduz deslocamento (valor ultrapassou $t0)
-    srl $t4, $t4, 1       # Ajusta divisor deslocado
+    sub $t5, $t5, 1       
+    srl $t4, $t4, 1       
 
 division_loop:
-    # Se o deslocamento for 0, fim da divisão
+    
     blez $t5, finalize
 
-    # Subtrair divisor deslocado do dividendo
-    sub $t6, $t0, $t4     # $t6 = $t0 - ($t1 << $t5)
+    
+    sub $t6, $t0, $t4     
     bltz $t6, skip_update
-    move $t0, $t6         # Atualiza o dividendo
-    sll $t7, $zero, $t5   # Incrementa quociente com (1 << deslocamento)
+    move $t0, $t6         
+    sll $t7, $zero, $t5   
     add $t2, $t2, $t7
 
 skip_update:
-    srl $t4, $t4, 1       # Reduz divisor pela metade
-    sub $t5, $t5, 1       # Reduz deslocamento
+    srl $t4, $t4, 1      
+    sub $t5, $t5, 1       
     j division_loop
 
 finalize:
-    # Ajustar o resto se $t0 for negativo
+    
     bgez $t0, check_sign
-    add $t0, $t0, $t1     # Resto = Resto anterior + divisor
+    add $t0, $t0, $t1     
 
 check_sign:
-    # Ajustar o sinal do quociente
-    andi $t3, $t3, 1      # Se o contador de sinal for ímpar, inverte o sinal
+   
+    andi $t3, $t3, 1     
     beq $t3, $zero, set_result
-    sub $t2, $zero, $t2   # Negar o quociente
+    sub $t2, $zero, $t2   
 
 set_result:
-    # Definir HI (resto) e LO (quociente)
+    
     move $hi, $t0
     move $lo, $t2
 
-    # Restaurar os registradores salvos
+    
     lw $t0, 0($sp)
     lw $t1, 4($sp)
     lw $t2, 8($sp)
     lw $t3, 12($sp)
     addi $sp, $sp, 16
 
-    jr $ra                # Retorna ao chamador
+    jr $ra               
